@@ -93,3 +93,5 @@ npm start
 1. Open an [issue](/issues) first so we can quickly align on the what and how.
 2. Fork this repo to your own Github account or org.
 3. Create a new branch (e.g. `feat/new-feature`, `fix/the-bug`, etc) and commit following the [Angular Commit Message Conventions](https://github.com/semantic-release/semantic-release#commit-message-format). This is important because this repo is managed via [semantic-release](https://github.com/semantic-release/semantic-release). Semantic-release parses these messages to determine version numbers.
+
+##HA
