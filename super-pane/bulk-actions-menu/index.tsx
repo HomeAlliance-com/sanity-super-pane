@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, ChangeEvent} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import { nanoid } from 'nanoid';
 import {
   Menu,
@@ -7,13 +7,13 @@ import {
   Dialog,
   Button,
   MenuButton,
-  useToast, Box, Text, Select, TextInput, Inline, Grid,
+  useToast, Box, Select, TextInput, Inline, Grid,
 } from '@sanity/ui';
 import {
   ResetIcon,
   UnpublishIcon,
   PublishIcon,
-  TrashIcon, ArrowRightIcon, EditIcon,
+  TrashIcon, EditIcon,
 } from '@sanity/icons';
 import schema from 'part:@sanity/base/schema';
 import SanityPreview from 'part:@sanity/base/preview';
@@ -91,7 +91,7 @@ function BulkActionsMenu({
     switch (massEditField.type) {
       // case 'string': return '' + massEditValue;
       case 'number': return parseFloat(massEditValue);
-      case 'boolean': return massEditValue == 'true' || false;
+      case 'boolean': return massEditValue === 'true' || false;
       default: return massEditValue;
     }
   }
@@ -108,7 +108,6 @@ function BulkActionsMenu({
 
       for (const publishedDocument of publishedDocuments) {
         const value = normalizedValue();
-        console.log(value);
         t.patch(publishedDocument._id, (p) => p.set({[massEditField.name]: value}));
       }
 
@@ -188,7 +187,7 @@ function BulkActionsMenu({
   };
 
   const onFieldChange = (event: any) => {
-    const field = fields.find((f) => f.name == event.currentTarget.value)
+    const field = fields.find((f) => f.name === event.currentTarget.value)
     setMassEditField(field);
     setMassEditValue('');
   }
