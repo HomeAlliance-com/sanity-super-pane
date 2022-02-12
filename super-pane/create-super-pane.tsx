@@ -22,7 +22,7 @@ import {
   MenuItem,
   Checkbox,
   Badge,
-  Flex,
+  Flex, Dialog,
 } from '@sanity/ui';
 import {
   EllipsisVerticalIcon,
@@ -122,6 +122,18 @@ function createSuperPane(typeName: string) {
       [selectedColumns]
     );
     const fields = [...defaultFields, ...selectableFields];
+    const editableField = fields.filter((f) => {
+      const typeField = f.field?.type?.name;
+      return typeField === 'string'
+        || typeField === 'number'
+        || typeField === 'boolean'
+    }).map((f) => {
+      return {
+        title: f.title,
+        name: f.fieldPath,
+        type: f.field.type.name
+      };
+    });
 
     const atLeastOneSelected = client.results.some((i) =>
       selectedIds.has(i._normalizedId)
@@ -177,6 +189,7 @@ function createSuperPane(typeName: string) {
                 className={styles.clearButton}
                 selectedIds={selectedIds}
                 typeName={typeName}
+                fields={editableField}
                 onDelete={() => {
                   setSelectedIds(new Set());
                   client.setPage(0);
