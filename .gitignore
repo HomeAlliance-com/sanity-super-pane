@@ -4,4 +4,4 @@ public
 .DS_Store
 
 .env.development
-/.idea/
+/.idea

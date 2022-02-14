@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import { nanoid } from 'nanoid';
 import {
   Menu,
@@ -7,26 +7,28 @@ import {
   Dialog,
   Button,
   MenuButton,
-  useToast,
+  useToast, Box, Select, TextInput, Inline, Grid,
 } from '@sanity/ui';
 import {
   ResetIcon,
   UnpublishIcon,
   PublishIcon,
-  TrashIcon,
+  TrashIcon, EditIcon,
 } from '@sanity/icons';
 import schema from 'part:@sanity/base/schema';
 import SanityPreview from 'part:@sanity/base/preview';
 import styles from './styles.module.css';
 import _client from 'part:@sanity/base/client';
 import { ErrorBoundary } from 'react-error-boundary';
-const client = _client as import('@sanity/client').SanityClient;
+let client = _client as import('@sanity/client').SanityClient;
+client = client.withConfig({apiVersion: '2021-03-25'});
 
 interface Props {
   disabled: Boolean;
   className?: string;
   typeName: string;
   selectedIds: Set<string>;
+  fields: any[];
   onDelete: () => void;
 }
 
@@ -67,6 +69,7 @@ function BulkActionsMenu({
   className,
   selectedIds,
   typeName,
+  fields,
   onDelete,
 }: Props) {
   const buttonId = useMemo(nanoid, []);
@@ -77,6 +80,62 @@ function BulkActionsMenu({
     'discard_changes' | 'unpublish' | 'publish' | 'delete' | null
   >(null);
   const [loading, setLoading] = useState(false);
+
+  const [openMassEdit, setOpenMassEdit] = useState(false);
+  const [massEditField, setMassEditField] = useState(fields[0]);
+  const [massEditValue, setMassEditValue] = useState('');
+  const onCloseMassEdit = useCallback(() => setOpenMassEdit(false), []);
+  const onOpenMassEdit = useCallback(() => setOpenMassEdit(true), []);
+
+  const normalizedValue = () => {
+    switch (massEditField.type) {
+      // case 'string': return '' + massEditValue;
+      case 'number': return parseFloat(massEditValue);
+      case 'boolean': return massEditValue === 'true' || false;
+      default: return massEditValue;
+    }
+  }
+
+  const onSubmitMassEdit = async () => {
+    setLoading(true);
+
+    try {
+      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
+        ids: Array.from(selectedIds),
+      });
+
+      const t = client.transaction();
+
+      for (const publishedDocument of publishedDocuments) {
+        const value = normalizedValue();
+        t.patch(publishedDocument._id, (p) => p.set({[massEditField.name]: value}));
+      }
+
+      await t.commit();
+    } catch (e) {
+      console.warn(e);
+
+      toast.push({
+        title: 'Error Bulk Mass edit',
+        description: (
+            <>
+              <p>
+                The bulk mass edit failed.
+              </p>
+
+              <ErroredDocuments e={e} schemaType={schemaType} />
+            </>
+        ),
+        status: 'error',
+        closable: true,
+        duration: 30 * 1000,
+      });
+    } finally {
+      setDialogMode(null);
+      setLoading(false);
+      onCloseMassEdit();
+    }
+  }
 
   const handleDiscardChanges = async () => {
     setLoading(true);
@@ -126,6 +185,12 @@ function BulkActionsMenu({
       setLoading(false);
     }
   };
+
+  const onFieldChange = (event: any) => {
+    const field = fields.find((f) => f.name === event.currentTarget.value)
+    setMassEditField(field);
+    setMassEditValue('');
+  }
 
   const handleUnpublish = async () => {
     setLoading(true);
@@ -258,8 +323,86 @@ function BulkActionsMenu({
     }
   };
 
+  const buildInlineField = () => {
+    switch (massEditField?.type) {
+      case 'string': return (
+          <TextInput
+              onChange={(event) =>
+                  setMassEditValue(event.currentTarget.value)
+              }
+              placeholder="Value ..."
+              value={massEditValue}
+          />
+      );
+      case 'number': return (
+          <TextInput
+              onChange={(event) =>
+                  setMassEditValue(event.currentTarget.value)
+              }
+              placeholder="Value ..."
+              value={massEditValue}
+              type='number'
+          />
+      );
+      case 'boolean': return (
+          <Select
+              space={[3, 3, 4]}
+              value={massEditValue}
+              onChange={(event) =>
+                  setMassEditValue(event.currentTarget.value)
+              }
+              placeholder="Value ..."
+          >
+            <option value="">-</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </Select>
+      )
+    }
+
+  }
+
   return (
     <>
+      {openMassEdit && (
+          <Dialog
+              header="Mass edit"
+              id="dialog-mass-edit"
+              onClose={onCloseMassEdit}
+              zOffset={1000}
+          >
+            <Box padding={4}>
+              <Grid columns={1} gap={[1, 1, 2, 3]} padding={4}>
+                <Inline space={[3, 3, 4]} margin={[3,3,4]}>
+                  <Select
+                      space={[3, 3, 4]}
+                      value={massEditField?.name}
+                      onChange={onFieldChange}
+                  >
+                    {fields.map((item) => <option key={item.name} value={item.name}>{item.title}</option>)}
+                  </Select>
+                </Inline>
+                <Inline space={[3, 3, 4]} margin={[3,3,4]}>
+                  {buildInlineField()}
+                </Inline>
+                <Inline space={[3, 3, 4]} margin={[15]}>
+                  <Button
+                      fontSize={[2, 2, 3]}
+                      mode="ghost"
+                      text="Cancel"
+                      onClick={onCloseMassEdit}
+                  />
+                  <Button
+                      fontSize={[2, 2, 3]}
+                      text="Submit"
+                      tone="primary"
+                      onClick={onSubmitMassEdit}
+                  />
+                </Inline>
+              </Grid>
+            </Box>
+          </Dialog>
+      )}
       <MenuButton
         button={
           disabled ? (
@@ -297,6 +440,13 @@ function BulkActionsMenu({
               text="Publish"
               icon={PublishIcon}
               onClick={() => setDialogMode('publish')}
+            />
+            <MenuItem
+                className="prevent-nav"
+                text="Bulk Edit"
+                icon={EditIcon}
+                onClick={onOpenMassEdit}
+                disabled={fields.length === 0}
             />
             <MenuDivider />
             <MenuItem
