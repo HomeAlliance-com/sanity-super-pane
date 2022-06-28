@@ -20,6 +20,9 @@ import SanityPreview from 'part:@sanity/base/preview';
 import styles from './styles.module.css';
 import _client from 'part:@sanity/base/client';
 import { ErrorBoundary } from 'react-error-boundary';
+
+import {generators, metaTagGenerator} from '../../components/schemaOrgGenerator';
+
 let client = _client as import('@sanity/client').SanityClient;
 client = client.withConfig({apiVersion: '2021-03-25'});
 
@@ -77,7 +80,7 @@ function BulkActionsMenu({
   const toast = useToast();
   const dialogId = useMemo(nanoid, []);
   const [dialogMode, setDialogMode] = useState<
-    'discard_changes' | 'unpublish' | 'publish' | 'delete' | null
+    'discard_changes' | 'unpublish' | 'publish' | 'delete' | 'json' | 'meta' | null
   >(null);
   const [loading, setLoading] = useState(false);
 
@@ -95,6 +98,83 @@ function BulkActionsMenu({
       case 'number': return parseFloat(massEditValue);
       case 'boolean': return massEditValue === 'true' || false;
       default: return massEditValue;
+    }
+  }
+
+  const onBulkGenerateJson = async () => {
+    setLoading(true);
+    try {
+      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
+        ids: Array.from(selectedIds),
+      });
+
+      const t = client.transaction();
+
+      for (const publishedDocument of publishedDocuments) {
+        const generator = generators.find((method) => method.type === publishedDocument._type);
+        if (generator) {
+          const value = await generator.factory(publishedDocument);
+          console.log('GENERATOR RESULT', publishedDocument, value);
+          t.patch(publishedDocument._id, (p) => p.set({'jsonld': value}));
+        }
+      }
+
+      setDialogMode(null);
+    } catch (e) {
+      console.warn(e);
+
+      toast.push({
+        title: 'Error Bulk Discarding Changes',
+        description: (
+          <>
+            <p>The bulk discard changes failed.</p>
+
+            <ErroredDocuments e={e} schemaType={schemaType} />
+          </>
+        ),
+        status: 'error',
+        closable: true,
+        duration: 30 * 1000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const onBulkGenerateMeta = async () => {
+    setLoading(true);
+    try {
+      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
+        ids: Array.from(selectedIds),
+      });
+
+      const t = client.transaction();
+
+      for (const publishedDocument of publishedDocuments) {
+        const value = metaTagGenerator(publishedDocument);
+        console.log('GENERATOR RESULT', publishedDocument, value);
+        t.patch(publishedDocument._id, (p) => p.set({'meta_tags': value}));
+      }
+
+      setDialogMode(null);
+    } catch (e) {
+      console.warn(e);
+
+      toast.push({
+        title: 'Error Bulk Discarding Changes',
+        description: (
+          <>
+            <p>The bulk discard changes failed.</p>
+
+            <ErroredDocuments e={e} schemaType={schemaType} />
+          </>
+        ),
+        status: 'error',
+        closable: true,
+        duration: 30 * 1000,
+      });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -452,17 +532,17 @@ function BulkActionsMenu({
             />
             <MenuItem
               className="prevent-nav"
-              text="Bulk Generate Meta-Tags"
+              text="Bulk Generate (JSON+ld)"
               icon={EditIcon}
-              onClick={onOpenMassEdit}
-              disabled={fields.length === 0}
+              onClick={() => setDialogMode('json')}
+              disabled={!fields.some((field) => field.field.name == 'jsonld')}
             />
             <MenuItem
               className="prevent-nav"
-              text="Bulk Generate LD+Json"
+              text="Bulk Generate (Meta-Tags)"
               icon={EditIcon}
-              onClick={onOpenMassEdit}
-              disabled={fields.length === 0}
+              onClick={() => setDialogMode('meta')}
+              disabled={!fields.some((field) => field.field.name == 'meta_tags')}
             />
             <MenuDivider />
             <MenuItem
@@ -662,6 +742,72 @@ function BulkActionsMenu({
               <strong>Note:</strong> in order to delete a document, it must not
               be referenced by any other document. You may have to remove those
               references first.
+            </p>
+          </div>
+        </Dialog>
+      )}
+
+      {dialogMode === 'json' && (
+        <Dialog
+          id={dialogId}
+          header={<>Generate Json+ld in all documents</>}
+          zOffset={100000}
+          footer={
+            <div className={styles.footer}>
+              <Button
+                text="Cancel"
+                mode="ghost"
+                disabled={loading}
+                onClick={() => setDialogMode(null)}
+              />
+              <Button
+                text="Generate"
+                tone="positive"
+                disabled={loading}
+                onClick={onBulkGenerateJson}
+              />
+            </div>
+          }
+          onClose={() => setDialogMode(null)}
+        >
+          <div className={styles.content}>
+            <p>
+              Are you sure you want to generate Json+ld for {' '}
+              <strong>{selectedIds.size}</strong> document
+              {selectedIds.size === 1 ? '' : 's'}?
+            </p>
+          </div>
+        </Dialog>
+      )}
+
+      {dialogMode === 'meta' && (
+        <Dialog
+          id={dialogId}
+          header={<>Generate Meta-Tags in all documents</>}
+          zOffset={100000}
+          footer={
+            <div className={styles.footer}>
+              <Button
+                text="Cancel"
+                mode="ghost"
+                disabled={loading}
+                onClick={() => setDialogMode(null)}
+              />
+              <Button
+                text="Generate"
+                tone="positive"
+                disabled={loading}
+                onClick={onBulkGenerateMeta}
+              />
+            </div>
+          }
+          onClose={() => setDialogMode(null)}
+        >
+          <div className={styles.content}>
+            <p>
+              Are you sure you want to generate Meta tags for {' '}
+              <strong>{selectedIds.size}</strong> document
+              {selectedIds.size === 1 ? '' : 's'}?
             </p>
           </div>
         </Dialog>
