@@ -81,6 +81,8 @@ function BulkActionsMenu({
   >(null);
   const [loading, setLoading] = useState(false);
 
+  console.log('bulk fields', fields)
+
   const [openMassEdit, setOpenMassEdit] = useState(false);
   const [massEditField, setMassEditField] = useState(fields[0]);
   const [massEditValue, setMassEditValue] = useState('');
@@ -447,6 +449,20 @@ function BulkActionsMenu({
                 icon={EditIcon}
                 onClick={onOpenMassEdit}
                 disabled={fields.length === 0}
+            />
+            <MenuItem
+              className="prevent-nav"
+              text="Bulk Generate Meta-Tags"
+              icon={EditIcon}
+              onClick={onOpenMassEdit}
+              disabled={fields.length === 0}
+            />
+            <MenuItem
+              className="prevent-nav"
+              text="Bulk Generate LD+Json"
+              icon={EditIcon}
+              onClick={onOpenMassEdit}
+              disabled={fields.length === 0}
             />
             <MenuDivider />
             <MenuItem
