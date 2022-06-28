@@ -125,13 +125,15 @@ function createSuperPane(typeName: string) {
     const editableField = fields.filter((f) => {
       const typeField = f.field?.type?.name;
       return typeField === 'string'
+        || typeField === 'text'
         || typeField === 'number'
         || typeField === 'boolean'
     }).map((f) => {
       return {
         title: f.title,
         name: f.fieldPath,
-        type: f.field.type.name
+        type: f.field.type.name,
+        field: f.field,
       };
     });
 
