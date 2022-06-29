@@ -84,8 +84,6 @@ function BulkActionsMenu({
   >(null);
   const [loading, setLoading] = useState(false);
 
-  console.log('bulk fields', fields)
-
   const [openMassEdit, setOpenMassEdit] = useState(false);
   const [massEditField, setMassEditField] = useState(fields[0]);
   const [massEditValue, setMassEditValue] = useState('');
@@ -109,18 +107,16 @@ function BulkActionsMenu({
       });
 
       const t = client.transaction();
-      console.log('DOCS', publishedDocuments);
 
       for (const publishedDocument of publishedDocuments) {
         const generator = generators.find((method) => method.type === publishedDocument._type);
-        console.log('GENERATOR OBJ', generator);
         if (generator) {
           const value = await generator.factory(publishedDocument);
-          console.log('GENERATOR RESULT', publishedDocument, value);
           t.patch(publishedDocument._id, (p) => p.set({'jsonld': value}));
         }
       }
 
+      await t.commit();
       setDialogMode(null);
     } catch (e) {
       console.warn(e);
@@ -151,14 +147,13 @@ function BulkActionsMenu({
       });
 
       const t = client.transaction();
-      console.log('DOCS', publishedDocuments);
 
       for (const publishedDocument of publishedDocuments) {
         const value = metaTagGenerator(publishedDocument);
-        console.log('GENERATOR RESULT', publishedDocument, value);
         t.patch(publishedDocument._id, (p) => p.set({'meta_tags': value}));
       }
 
+      await t.commit();
       setDialogMode(null);
     } catch (e) {
       console.warn(e);
