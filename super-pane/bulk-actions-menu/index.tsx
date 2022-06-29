@@ -109,9 +109,11 @@ function BulkActionsMenu({
       });
 
       const t = client.transaction();
+      console.log('DOCS', publishedDocuments);
 
       for (const publishedDocument of publishedDocuments) {
         const generator = generators.find((method) => method.type === publishedDocument._type);
+        console.log('GENERATOR OBJ', generator);
         if (generator) {
           const value = await generator.factory(publishedDocument);
           console.log('GENERATOR RESULT', publishedDocument, value);
@@ -149,6 +151,7 @@ function BulkActionsMenu({
       });
 
       const t = client.transaction();
+      console.log('DOCS', publishedDocuments);
 
       for (const publishedDocument of publishedDocuments) {
         const value = metaTagGenerator(publishedDocument);
