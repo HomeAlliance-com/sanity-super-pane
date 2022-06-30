@@ -5,9 +5,9 @@ let client = _client as import('@sanity/client').SanityClient;
 client = client.withConfig({apiVersion: '2021-03-25'});
 
 const builder = imageUrlBuilder(client);
-const urlFor = (source) => builder.image(source);
+const urlFor = (source: any) => builder.image(source);
 
-export const metaTagGenerator = (document) => {
+export const metaTagGenerator = (document: any) => {
   const getImageObj = () => document.mainImage || document.pictures?.at(0) || document.image;
   const html = '<meta property="og:site_name" content="Home Alliance | <%- title %>"/>\n' +
     ' <meta property="og:type" content="website"/>\n' +
@@ -30,8 +30,8 @@ export const metaTagGenerator = (document) => {
 export const generators = [
   {
     type: 'question',
-    factory: async (document) => {
-      const refs = document?.answers?.map(item => `"${item._ref}"`) || [];
+    factory: async (document: any) => {
+      const refs = document?.answers?.map((item: any) => `"${item._ref}"`) || [];
       const answers = await client.fetch(`*[_type == "answer" && _id in [${refs.join(", ")}]]{
         answer
       }`);
@@ -39,10 +39,10 @@ export const generators = [
         "@context": "https://schema.org",
         "@type": "Question",
         "text": document['question'],
-        "acceptedAnswer": answers?.map((item) => {
+        "acceptedAnswer": answers?.map((item: any) => {
           return {
             "@type": "Answer",
-            "text": item?.answer?.map((child) => child.children[0]?.text).join('\n') || ''
+            "text": item?.answer?.map((child: any) => child.children[0]?.text).join('\n') || ''
           };
         })
       }, null, '\t');
@@ -50,14 +50,14 @@ export const generators = [
   },
   {
     type: 'state',
-    factory: async (document) => {
-      const refs = document?.cities?.map(item => `"${item._ref}"`) || [];
+    factory: async (document: any) => {
+      const refs = document?.cities?.map((item: any) => `"${item._ref}"`) || [];
       const cities = await client.fetch(`*[_type == "city" && _id in [${refs.join(", ")}]]{
         name
       }`);
 
 
-      const mainImage = document['pictures'] ? document['pictures'].map((image) => {
+      const mainImage = document['pictures'] ? document['pictures'].map((image: any) => {
         return {
           "@type": "ImageObject",
           "description": image?.description,
@@ -65,7 +65,7 @@ export const generators = [
           "alternateName": image?.alt,
         }
       }) : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
@@ -84,7 +84,7 @@ export const generators = [
           ...mainImage,
           ...postImages
         ],
-        "containsPlace": cities?.map((item) => {
+        "containsPlace": cities?.map((item: any) => {
           return {
             "@type": "City",
             "name": item.name
@@ -95,8 +95,8 @@ export const generators = [
   },
   {
     type: 'city',
-    factory: async (document) => {
-      const mainImage = document['pictures'] ? document['pictures'].map((image) => {
+    factory: async (document: any) => {
+      const mainImage = document['pictures'] ? document['pictures'].map((image: any) => {
         return {
           "@type": "ImageObject",
           "description": image?.description,
@@ -104,7 +104,7 @@ export const generators = [
           "alternateName": image?.alt,
         }
       }) : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
@@ -127,8 +127,8 @@ export const generators = [
   },
   {
     type: 'location',
-    factory: async (document) => {
-      const mainImage = document['pictures'] ? document['pictures'].map((image) => {
+    factory: async (document: any) => {
+      const mainImage = document['pictures'] ? document['pictures'].map((image: any) => {
         return {
           "@type": "ImageObject",
           "description": image?.description,
@@ -136,7 +136,7 @@ export const generators = [
           "alternateName": image?.alt,
         }
       }) : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
@@ -158,14 +158,14 @@ export const generators = [
   },
   {
     type: 'brand',
-    factory: async (document) => {
+    factory: async (document: any) => {
       const mainImage = document['logo'] ? [{
           "@type": "ImageObject",
           "description": document['logo']?.description,
           "name": document['logo']?.title,
           "alternateName": document['logo']?.alt,
         }] : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
@@ -189,7 +189,7 @@ export const generators = [
   },
   {
     type: 'post',
-    factory: async (document) => {
+    factory: async (document: any) => {
       const authorRef = document['author']?._ref || '';
       const author = await client.fetch(`*[_type == "author" && _id == "${authorRef}"]{
         name,
@@ -201,7 +201,7 @@ export const generators = [
         "name": document['mainImage']?.title,
         "alternateName": document['mainImage']?.alt,
       }] : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
@@ -220,13 +220,13 @@ export const generators = [
           ...mainImage,
           ...postImages
         ],
-        "text": document['body']?.filter((block) => block._type === 'block')?.map((block) => block.children[0]?.text)?.join('\n'),
+        "text": document['body']?.filter((block: any) => block._type === 'block')?.map((block: any) => block.children[0]?.text)?.join('\n'),
       }, null, '\t');
     }
   },
   {
     type: 'service',
-    factory: async (document) => {
+    factory: async (document: any) => {
       const categoryRef = document['category']?._ref;
       const category = await client.fetch(`*[_type == "category" && _id == "${categoryRef}"]{
         name,
@@ -242,7 +242,7 @@ export const generators = [
         "name": document['icon']?.title,
         "alternateName": document['icon']?.alt,
       }] : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block) => block._type === 'imageContent')?.map((block) => {
+      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
         return {
           "@type": "ImageObject",
           "description": block?.description,
