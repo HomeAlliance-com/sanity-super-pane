@@ -1,5 +1,4 @@
 import { MdLocalMovies as icon } from 'react-icons/md';
-import {BaseMetaInput} from "../components/jsonField";
 
 export default {
   name: 'movie',
@@ -30,13 +29,11 @@ export default {
       name: 'meta_tags',
       title: 'Tested meta_tags',
       type: 'text',
-      inputComponent: BaseMetaInput
     },
     {
       name: 'jsonld',
       title: 'Tested jsonld',
       type: 'text',
-      inputComponent: BaseMetaInput
     },
     {
       name: 'releaseDate',
