@@ -21,7 +21,7 @@ import styles from './styles.module.css';
 import _client from 'part:@sanity/base/client';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import {generators, metaTagGenerator} from '../../components/schemaOrgGenerator';
+import {generators, metaTagGenerator} from './schemaOrgGenerator';
 
 let client = _client as import('@sanity/client').SanityClient;
 client = client.withConfig({apiVersion: '2021-03-25'});
@@ -118,7 +118,6 @@ function BulkActionsMenu({
 
       await t.commit();
       setDialogMode(null);
-      onDelete()
     } catch (e) {
       console.warn(e);
 
@@ -156,7 +155,6 @@ function BulkActionsMenu({
 
       await t.commit();
       setDialogMode(null);
-      onDelete()
     } catch (e) {
       console.warn(e);
 
@@ -194,7 +192,6 @@ function BulkActionsMenu({
       }
 
       await t.commit();
-      onDelete()
     } catch (e) {
       console.warn(e);
 
@@ -248,7 +245,6 @@ function BulkActionsMenu({
 
       await t.commit();
       setDialogMode(null);
-      onDelete()
     } catch (e) {
       console.warn(e);
 
@@ -296,7 +292,6 @@ function BulkActionsMenu({
       }
 
       await t.commit();
-      onDelete()
     } catch (e) {
       console.warn(e);
 
@@ -343,7 +338,6 @@ function BulkActionsMenu({
       }
 
       await t.commit();
-      onDelete()
     } catch (e) {
       console.warn(e);
 
