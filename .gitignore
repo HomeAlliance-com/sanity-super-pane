@@ -5,3 +5,4 @@ public
 
 .env.development
 /.idea
+/yarn.lock
