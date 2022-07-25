@@ -195,32 +195,25 @@ export const generators = [
         name,
       }`);
 
-      const mainImage = document['mainImage'] ? [{
-        "@type": "ImageObject",
-        "description": document['mainImage']?.description,
-        "name": document['mainImage']?.title,
-        "alternateName": document['mainImage']?.alt,
-      }] : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
-        return {
-          "@type": "ImageObject",
-          "description": block?.description,
-          "name": block?.title,
-          "alternateName": block?.alt,
-        }
-      }) : [];
-
       return JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Article",
-        "author": author[0]?.name,
-        "name": document['title'],
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": `https://homealliance.com/blogs/${document['slug']?.current}`,
+        },
+        "headline": document['title'],
         "description": document['meta_description'],
-        "image": [
-          ...mainImage,
-          ...postImages
-        ],
-        "text": document['body']?.filter((block: any) => block._type === 'block')?.map((block: any) => block.children[0]?.text)?.join('\n'),
+        "image": document['mainImage'] ? urlFor(document['mainImage']).url() : "",
+        "author": {
+          "@type": "Organization",
+          "name": author[0]?.name,
+          "url": author[0]?.slug?.current,
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "HomeAlliance"
+        },
       }, null, '\t');
     }
   },
