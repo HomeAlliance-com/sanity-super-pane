@@ -118,6 +118,7 @@ function BulkActionsMenu({
 
       await t.commit();
       setDialogMode(null);
+      onDelete();
     } catch (e) {
       console.warn(e);
 
@@ -155,6 +156,7 @@ function BulkActionsMenu({
 
       await t.commit();
       setDialogMode(null);
+      onDelete();
     } catch (e) {
       console.warn(e);
 
@@ -192,6 +194,7 @@ function BulkActionsMenu({
       }
 
       await t.commit();
+      onDelete();
     } catch (e) {
       console.warn(e);
 
