@@ -22,6 +22,7 @@ import _client from 'part:@sanity/base/client';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import {generators, metaTagGenerator} from './schemaOrgGenerator';
+import {descGenerators} from './schemaDescGenerator';
 
 let client = _client as import('@sanity/client').SanityClient;
 client = client.withConfig({apiVersion: '2021-03-25'});
@@ -80,9 +81,11 @@ function BulkActionsMenu({
   const toast = useToast();
   const dialogId = useMemo(nanoid, []);
   const [dialogMode, setDialogMode] = useState<
-    'discard_changes' | 'unpublish' | 'publish' | 'delete' | 'json' | 'meta' | null
+    'discard_changes' | 'unpublish' | 'publish' | 'delete' | 'json' | 'meta' | 'description' | null
   >(null);
   const [loading, setLoading] = useState(false);
+
+  console.log(fields);
 
   const [openMassEdit, setOpenMassEdit] = useState(false);
   const [massEditField, setMassEditField] = useState(fields[0]);
@@ -113,6 +116,47 @@ function BulkActionsMenu({
         if (generator) {
           const value = await generator.factory(publishedDocument);
           t.patch(publishedDocument._id, (p) => p.set({'jsonld': value}));
+        }
+      }
+
+      await t.commit();
+      setDialogMode(null);
+      onDelete();
+    } catch (e) {
+      console.warn(e);
+
+      toast.push({
+        title: 'Error Bulk Discarding Changes',
+        description: (
+          <>
+            <p>The bulk discard changes failed.</p>
+
+            <ErroredDocuments e={e} schemaType={schemaType} />
+          </>
+        ),
+        status: 'error',
+        closable: true,
+        duration: 30 * 1000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const onBulkGenerateDescription = async () => {
+    setLoading(true);
+    try {
+      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
+        ids: Array.from(selectedIds),
+      });
+
+      const t = client.transaction();
+
+      for (const publishedDocument of publishedDocuments) {
+        const generator = descGenerators.find((method) => method.type === publishedDocument._type);
+        if (generator) {
+          const value = await generator.factory(publishedDocument);
+          t.patch(publishedDocument._id, (p) => p.set({'description': value}));
         }
       }
 
@@ -545,6 +589,12 @@ function BulkActionsMenu({
               onClick={() => setDialogMode('meta')}
               disabled={!fields.some((field) => field.field.name == 'meta_tags')}
             />
+            <MenuItem
+              className="prevent-nav"
+              text="Bulk Generate (Descriptions)"
+              icon={EditIcon}
+              onClick={() => setDialogMode('description')}
+            />
             <MenuDivider />
             <MenuItem
               className="prevent-nav"
@@ -799,6 +849,39 @@ function BulkActionsMenu({
                 tone="positive"
                 disabled={loading}
                 onClick={onBulkGenerateMeta}
+              />
+            </div>
+          }
+          onClose={() => setDialogMode(null)}
+        >
+          <div className={styles.content}>
+            <p>
+              Are you sure you want to generate Meta tags for {' '}
+              <strong>{selectedIds.size}</strong> document
+              {selectedIds.size === 1 ? '' : 's'}?
+            </p>
+          </div>
+        </Dialog>
+      )}
+
+      {dialogMode === 'description' && (
+        <Dialog
+          id={dialogId}
+          header={<>Generate Descritpion in [State, City, Location, Service]</>}
+          zOffset={100000}
+          footer={
+            <div className={styles.footer}>
+              <Button
+                text="Cancel"
+                mode="ghost"
+                disabled={loading}
+                onClick={() => setDialogMode(null)}
+              />
+              <Button
+                text="Generate"
+                tone="positive"
+                disabled={loading}
+                onClick={onBulkGenerateDescription}
               />
             </div>
           }
