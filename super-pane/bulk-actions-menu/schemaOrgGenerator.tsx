@@ -1,5 +1,6 @@
 import _client from 'part:@sanity/base/client';
 import imageUrlBuilder from '@sanity/image-url'
+import * as _ from "lodash";
 
 let client = _client as import('@sanity/client').SanityClient;
 client = client.withConfig({apiVersion: '2021-03-25'});
