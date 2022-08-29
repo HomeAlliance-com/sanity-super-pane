@@ -85,8 +85,6 @@ function BulkActionsMenu({
   >(null);
   const [loading, setLoading] = useState(false);
 
-  console.log(fields);
-
   const [openMassEdit, setOpenMassEdit] = useState(false);
   const [massEditField, setMassEditField] = useState(fields[0]);
   const [massEditValue, setMassEditValue] = useState('');
