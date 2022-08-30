@@ -38,7 +38,6 @@ export const descGenerators = [
       const locRef = document?.location?._ref;
       const location = await client.fetch(`*[_type == "location" && _id == "${locRef}"]{
         name,
-        is_main_for_city,
         city->{
           name,
           state->{
@@ -47,9 +46,7 @@ export const descGenerators = [
         }
       }[0]`);
 
-      return location?.is_main_for_city ?
-        `In need of comprehensive appliance repair services near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}, that guarantees top-notch results? Home Alliance has got you covered!`
-        : document['description']
+      return `In need of comprehensive appliance repair services near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}, that guarantees top-notch results? Home Alliance has got you covered!`;
     }
   }
 ]
