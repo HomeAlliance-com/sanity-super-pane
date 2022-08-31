@@ -154,7 +154,9 @@ function BulkActionsMenu({
         const generator = descGenerators.find((method) => method.type === publishedDocument._type);
         if (generator) {
           const value = await generator.factory(publishedDocument);
-          t.patch(publishedDocument._id, (p) => p.set({'description': value, 'meta_description': value}));
+          if (value) {
+            t.patch(publishedDocument._id, (p) => p.set({'description': value, 'meta_description': value}));
+          }
         }
       }
 
