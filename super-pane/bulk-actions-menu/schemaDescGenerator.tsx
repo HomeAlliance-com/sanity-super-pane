@@ -56,9 +56,8 @@ export const descGenerators = [
         case "heating-and-air-conditioning": return `Are you looking for a superior, affordable HVAC service near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}? Look no further! Home Alliance is a company you can trust for quality`;
         case "plumbing": return `Give your home plumbing system the best care with Home Alliance’s professional plumbing service near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}. The best plumbing solutions in ${location?.city?.state?.short_name?.toUpperCase()}.`;
         case "electrical": return `Enjoy 100% satisfaction and perfectly working appliances with Home Alliance Electrical service near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}. We always get things done right.`;
+        default: return null;
       }
-
-      return null;
     }
   }
 ]
