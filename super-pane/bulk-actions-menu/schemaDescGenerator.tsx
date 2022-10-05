@@ -6,12 +6,18 @@ client = client.withConfig({apiVersion: '2021-03-25'});
 export const descGenerators = [
   {
     type: 'state',
+    projection: `
+      ...
+    `,
     factory: async (document: any) => {
       return `Need all-home services in ${document['name']}, ${document['short_name'].toUpperCase()}? Trust Home Alliance! We do appliance, electrical, HVAC, and sewage repair services. So, call and book a service today!`;
     }
   },
   {
     type: 'city',
+    projection: `
+      ...
+    `,
     factory: async (document: any) => {
       const ref = document?.state?._ref;
       const state = await client.fetch(`*[_type == "state" && _id == "${ref}"]{
@@ -23,6 +29,9 @@ export const descGenerators = [
   },
   {
     type: 'location',
+    projection: `
+      ...
+    `,
     factory: async (document: any) => {
       const ref = document?.city?._ref;
       const city = await client.fetch(`*[_type == "city" && _id == "${ref}"]{
@@ -34,10 +43,13 @@ export const descGenerators = [
   },
   {
     type: 'service',
-    factory: async (document: any) => {
-      const locRef = document?.location?._ref;
-      const catRef = document?.category?._ref;
-      const location = await client.fetch(`*[_type == "location" && _id == "${locRef}"]{
+    projection: `
+      ...,
+      category->{
+        name,
+        "slug": slug.current
+      },
+      location->{
         name,
         city->{
           name,
@@ -45,11 +57,11 @@ export const descGenerators = [
             short_name
           }
         }
-      }[0]`);
-      const category = await client.fetch(`*[_type == "category" && _id == "${catRef}"]{
-        name,
-        "slug": slug.current
-      }[0]`);
+      }
+    `,
+    factory: async (document: any) => {
+      const location = document['location'];
+      const category = document['category'];
 
       switch (category.slug) {
         case "appliance-repair": return `In need of comprehensive appliance repair services near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}, that guarantees top-notch results? Home Alliance has got you covered!`;
