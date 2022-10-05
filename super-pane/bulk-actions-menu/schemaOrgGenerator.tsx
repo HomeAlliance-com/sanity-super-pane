@@ -19,10 +19,10 @@ export const metaTagGenerator = (document: any) => {
     ' <meta name="description" content="<%- metaDescription %>"/>\n' +
     ' <link rel="canonical" href="<%- slug %>"/>';
   const compiled = _.template(html);
-  const image = getImageObj();
+  const image = document?.imageUrl; // getImageObj();
   return compiled({
     title: document.title || document.name|| document.question,
-    mainImage: image ? urlFor(image).url() : '',
+    mainImage: image /*? urlFor(image).url() :*/ || '',
     slug: document?.slug?.current || document.short_name,
     metaDescription: document.meta_description,
   });
@@ -31,6 +31,9 @@ export const metaTagGenerator = (document: any) => {
 export const generators = [
   {
     type: 'question',
+    projection: `
+      ...
+    `,
     factory: async (document: any) => {
       const refs = document?.answers?.map((item: any) => `"${item._ref}"`) || [];
       const answers = await client.fetch(`*[_type == "answer" && _id in [${refs.join(", ")}]]{
@@ -51,6 +54,10 @@ export const generators = [
   },
   {
     type: 'state',
+    projection: `
+      ...,
+      "imageUrl": pictures[0]->asset.url
+    `,
     factory: async (document: any) => {
       const refs = document?.cities?.map((item: any) => `"${item._ref}"`) || [];
       const cities = await client.fetch(`*[_type == "city" && _id in [${refs.join(", ")}]]{
@@ -96,6 +103,10 @@ export const generators = [
   },
   {
     type: 'city',
+    projection: `
+      ...,
+      "imageUrl": pictures[0]->asset.url
+    `,
     factory: async (document: any) => {
       const mainImage = document['pictures'] ? document['pictures'].map((image: any) => {
         return {
@@ -128,6 +139,10 @@ export const generators = [
   },
   {
     type: 'location',
+    projection: `
+      ...,
+      "imageUrl": pictures[0]->asset.url
+    `,
     factory: async (document: any) => {
       const mainImage = document['pictures'] ? document['pictures'].map((image: any) => {
         return {
@@ -159,6 +174,10 @@ export const generators = [
   },
   {
     type: 'brand',
+    projection: `
+      ...,
+      "imageUrl": logo->asset.url
+    `,
     factory: async (document: any) => {
       const mainImage = document['logo'] ? [{
           "@type": "ImageObject",
@@ -190,6 +209,10 @@ export const generators = [
   },
   {
     type: 'post',
+    projection: `
+      ...,
+      "imageUrl": mainImage->asset.url
+    `,
     factory: async (document: any) => {
       const authorRef = document['author']?._ref || '';
       const author = await client.fetch(`*[_type == "author" && _id == "${authorRef}"]{
@@ -220,41 +243,33 @@ export const generators = [
   },
   {
     type: 'service',
+    projection: `
+      ...,
+      category->{
+        name
+      },
+      brand->{
+        name
+      }
+    `,
     factory: async (document: any) => {
-      const categoryRef = document['category']?._ref;
-      const category = await client.fetch(`*[_type == "category" && _id == "${categoryRef}"]{
-        name,
-      }`);
-      const brandRef = document['brand']?._ref;
-      const brand = await client.fetch(`*[_type == "brand" && _id == "${brandRef}"]{
-        name,
-      }`);
-
-      const mainImage = document['icon'] ? [{
-        "@type": "ImageObject",
-        "description": document['icon']?.description,
-        "name": document['icon']?.title,
-        "alternateName": document['icon']?.alt,
-      }] : [];
-      const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
-        return {
-          "@type": "ImageObject",
-          "description": block?.description,
-          "name": block?.title,
-          "alternateName": block?.alt,
-        }
-      }) : [];
+      // const postImages = document['post_body'] ? document['post_body']?.filter((block: any) => block._type === 'imageContent')?.map((block: any) => {
+      //   return {
+      //     "@type": "ImageObject",
+      //     "description": block?.description,
+      //     "name": block?.title,
+      //     "alternateName": block?.alt,
+      //   }
+      // }) : [];
 
       return JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Service",
         "serviceType": document['name'],
         "description": document['meta_description'],
-        "image": [
-          ...mainImage,
-          ...postImages],
-        "category": category[0]?.name,
-        "brand": brand[0]?.name,
+        // "image": [...postImages],
+        "category": document['category']?.name,
+        "brand": document['brand']?.name,
       }, null, '\t');
     }
   }

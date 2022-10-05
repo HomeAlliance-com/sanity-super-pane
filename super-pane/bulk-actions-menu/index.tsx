@@ -103,21 +103,27 @@ function BulkActionsMenu({
   const onBulkGenerateJson = async () => {
     setLoading(true);
     try {
-      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
-        ids: Array.from(selectedIds),
+      const pivot = await client.fetch<any>('*[_id == $ids][0]', {
+        ids: Array.from(selectedIds)[0],
       });
+      const generator = generators.find((method) => method.type === pivot._type);
+      if (generator) {
+        const publishedDocuments = await client.fetch<any[]>(`*[_id in $ids]{${generator.projection}}`, {
+          ids: Array.from(selectedIds),
+        });
 
-      const t = client.transaction();
+        const t = client.transaction();
 
-      for (const publishedDocument of publishedDocuments) {
-        const generator = generators.find((method) => method.type === publishedDocument._type);
-        if (generator) {
-          const value = await generator.factory(publishedDocument);
-          t.patch(publishedDocument._id, (p) => p.set({'jsonld': value}));
+        for (const publishedDocument of publishedDocuments) {
+          const generator = generators.find((method) => method.type === publishedDocument._type);
+          if (generator) {
+            const value = await generator.factory(publishedDocument);
+            t.patch(publishedDocument._id, (p) => p.set({'jsonld': value}));
+          }
         }
-      }
 
-      await t.commit();
+        await t.commit();
+      }
       setDialogMode(null);
       onDelete();
     } catch (e) {
@@ -144,23 +150,26 @@ function BulkActionsMenu({
   const onBulkGenerateDescription = async () => {
     setLoading(true);
     try {
-      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
-        ids: Array.from(selectedIds),
+      const pivot = await client.fetch<any>('*[_id == $ids][0]', {
+        ids: Array.from(selectedIds)[0],
       });
+      const generator = descGenerators.find((method) => method.type === pivot._type);
+      if (generator) {
+        const publishedDocuments = await client.fetch<any[]>(`*[_id in $ids]{${generator.projection}}`, {
+          ids: Array.from(selectedIds),
+        });
 
-      const t = client.transaction();
+        const t = client.transaction();
 
-      for (const publishedDocument of publishedDocuments) {
-        const generator = descGenerators.find((method) => method.type === publishedDocument._type);
-        if (generator) {
+        for (const publishedDocument of publishedDocuments) {
           const value = await generator.factory(publishedDocument);
           if (value) {
             t.patch(publishedDocument._id, (p) => p.set({'description': value, 'meta_description': value}));
           }
         }
-      }
 
-      await t.commit();
+        await t.commit();
+      }
       setDialogMode(null);
       onDelete();
     } catch (e) {
@@ -187,18 +196,24 @@ function BulkActionsMenu({
   const onBulkGenerateMeta = async () => {
     setLoading(true);
     try {
-      const publishedDocuments = await client.fetch<any[]>('*[_id in $ids]', {
-        ids: Array.from(selectedIds),
+      const pivot = await client.fetch<any>('*[_id == $ids][0]', {
+        ids: Array.from(selectedIds)[0],
       });
+      const generator = generators.find((method) => method.type === pivot._type);
+      if (generator) {
+        const publishedDocuments = await client.fetch<any[]>(`*[_id in $ids]{${generator.projection}}`, {
+          ids: Array.from(selectedIds),
+        });
 
-      const t = client.transaction();
+        const t = client.transaction();
 
-      for (const publishedDocument of publishedDocuments) {
-        const value = metaTagGenerator(publishedDocument);
-        t.patch(publishedDocument._id, (p) => p.set({'meta_tags': value}));
+        for (const publishedDocument of publishedDocuments) {
+          const value = metaTagGenerator(publishedDocument);
+          t.patch(publishedDocument._id, (p) => p.set({'meta_tags': value}));
+        }
+
+        await t.commit();
       }
-
-      await t.commit();
       setDialogMode(null);
       onDelete();
     } catch (e) {
