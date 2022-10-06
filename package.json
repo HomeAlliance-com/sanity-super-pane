@@ -27,7 +27,7 @@
     "classnames": "2.3.1",
     "nanoid": "3.3.2",
     "react-error-boundary": "3.1.4",
-    "styled-components": "5.3.5"
+    "styled-components": "^5.3.6"
   },
   "devDependencies": {
     "@babel/core": "7.17.8",
@@ -54,7 +54,7 @@
     "@types/classnames": "2.3.0",
     "@types/react": "17.0.43",
     "@types/react-dom": "17.0.14",
-    "@types/styled-components": "5.1.24",
+    "@types/styled-components": "^5.1.26",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "autoprefixer": "10.4.4",
