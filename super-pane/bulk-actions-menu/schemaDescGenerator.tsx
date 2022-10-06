@@ -63,7 +63,7 @@ export const descGenerators = [
       const location = document['location'];
       const category = document['category'];
 
-      switch (category.slug) {
+      switch (category?.slug) {
         case "appliance-repair": return `In need of comprehensive appliance repair services near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}, that guarantees top-notch results? Home Alliance has got you covered!`;
         case "heating-and-air-conditioning": return `Are you looking for a superior, affordable HVAC service near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}? Look no further! Home Alliance is a company you can trust for quality`;
         case "plumbing": return `Give your home plumbing system the best care with Home Alliance’s professional plumbing service near me in ${location?.city?.name}, ${location?.city?.state?.short_name?.toUpperCase()}. The best plumbing solutions in ${location?.city?.state?.short_name?.toUpperCase()}.`;
