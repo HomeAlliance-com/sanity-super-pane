@@ -7,7 +7,7 @@ import {
   Dialog,
   Button,
   MenuButton,
-  useToast, Box, Select, TextInput, Inline, Grid,
+  useToast, Box, Select, TextInput, Inline, Grid, TextArea,
 } from '@sanity/ui';
 import {
   ResetIcon,
@@ -467,6 +467,16 @@ function BulkActionsMenu({
 
   const buildInlineField = () => {
     switch (massEditField?.type) {
+      case 'text':
+      case 'shortDescription': return (
+        <TextArea
+          onChange={(event) =>
+            setMassEditValue(event.currentTarget.value)
+          }
+          placeholder="Value ..."
+          value={massEditValue}
+        />
+      );
       case 'string': return (
           <TextInput
               onChange={(event) =>
